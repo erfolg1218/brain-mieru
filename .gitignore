@@ -1,0 +1,16 @@
+# 環境変数・秘密情報
+.env
+*.env
+.env.*
+!.env.example
+
+# 実行成果物
+output/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Claude Code ローカル設定
+.claude/
