@@ -1,0 +1,22 @@
+# 秘密情報（絶対にGitHubにpushしない）
+.env
+*.env
+
+# 取得データ（個人情報含む可能性あり）
+x-briefing/output/
+hojokin/output/
+obsidian-linker/output/
+
+# 状態ファイル
+obsidian-linker/state.json
+
+# システムファイル
+__pycache__/
+*.pyc
+.DS_Store
+
+# Claude Code
+.claude/
+
+# ログファイル
+*.log

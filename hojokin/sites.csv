@@ -1,0 +1,16 @@
+site_name,url,category,priority,active,memo,added_date
+Jグランツ,https://jgrants-portal.go.jp/subsidy/search,補助金ポータル,高,true,API版に切替予定,2026-04-09
+ミラサポplus,https://mirasapo-plus.go.jp/subsidy/?sort=deadline_date&limit=20,中小企業庁,高,true,安定稼働中・47件実績,2026-04-09
+デジタル庁,https://www.digital.go.jp/policies/,デジタル庁,中,true,安定稼働中・3件実績,2026-04-09
+経産省_公募情報,https://www.meti.go.jp/information/publicoffer/kobo.html,経産省,高,true,中小企業向け補助金・ものづくり補助金等,2026-04-09
+国交省_公募情報,https://www.mlit.go.jp/report/press/index.html,国交省,高,true,建設・設備工事向け・インフラ整備関連,2026-04-09
+NEDO_公募,https://www.nedo.go.jp/koubo/index.html,NEDO,高,true,省エネ・再エネ・電力関連助成金,2026-04-09
+東京都_補助金,https://www.sangyo-rodo.metro.tokyo.lg.jp/chushou/shoko/,自治体,中,true,東京都産業労働局,2026-04-09
+神奈川県_補助金,https://www.pref.kanagawa.jp/docs/b4e/cnt/f533065/index.html,自治体,中,true,神奈川県中小企業向け,2026-04-09
+埼玉県_補助金,https://www.pref.saitama.lg.jp/a0801/shien/index.html,自治体,中,true,埼玉県産業労働部,2026-04-09
+千葉県_補助金,https://www.pref.chiba.lg.jp/keisei/zaisei/shiensaku.html,自治体,中,true,千葉県財政課・支援策,2026-04-09
+大阪府_補助金,https://www.pref.osaka.lg.jp/aid/hojokin/,自治体,中,true,大阪府補助金情報,2026-04-09
+兵庫県_補助金,https://web.pref.hyogo.lg.jp/kk21/,自治体,中,true,兵庫県中小企業支援,2026-04-09
+愛知県_補助金,https://www.aibsc.jp/,自治体,中,true,愛知県中小企業振興公社,2026-04-09
+静岡県_補助金,https://www.pref.shizuoka.jp/sangyou/sa-610/index.html,自治体,中,true,静岡県産業振興財団,2026-04-09
+福岡県_補助金,https://www.pref.fukuoka.lg.jp/contents/hojokin.html,自治体,中,true,福岡県中小企業振興,2026-04-09
