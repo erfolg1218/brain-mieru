@@ -28,8 +28,8 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="repla
 sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding="utf-8", errors="replace")
 
 # ── 設定 ─────────────────────────────────────────────
-load_dotenv(Path(r"C:\Users\taisei10\Desktop\brain-mieru\x-briefing\.env"))
-load_dotenv(Path(r"C:\Users\taisei10\Desktop\AI-Shokunin\agent-zemi\.env"), override=False)
+env_path = Path(__file__).parent.parent / "x-briefing" / ".env"
+load_dotenv(env_path)
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 LINE_TOKEN = os.getenv("LINE_CHANNEL_ACCESS_TOKEN")
@@ -373,8 +373,14 @@ NOTION_HEADERS = {
 }
 
 
-def notion_url_exists(url: str) -> bool:
-    """同じ公式URLが既にNotionDBに登録済みか確認"""
+def notion_url_exists(url: str) -> bool | None:
+    """同じ公式URLが既にNotionDBに登録済みか確認
+
+    戻り値:
+        True  : 登録済み（重複）
+        False : 未登録
+        None  : API 失敗（呼び出し側で保存をスキップすること）
+    """
     if not url:
         return False
     payload = {
@@ -384,14 +390,17 @@ def notion_url_exists(url: str) -> bool:
         },
         "page_size": 1,
     }
-    resp = requests.post(
-        f"https://api.notion.com/v1/databases/{NOTION_DATABASE_ID}/query",
-        headers=NOTION_HEADERS,
-        json=payload,
-        timeout=15,
-    )
+    try:
+        resp = requests.post(
+            f"https://api.notion.com/v1/databases/{NOTION_DATABASE_ID}/query",
+            headers=NOTION_HEADERS,
+            json=payload,
+            timeout=15,
+        )
+    except requests.RequestException:
+        return None
     if resp.status_code != 200:
-        return False
+        return None
     return len(resp.json().get("results", [])) > 0
 
 
@@ -400,9 +409,15 @@ def add_to_notion(item: dict) -> bool:
     url = item.get("url", "")
 
     # 重複チェック
-    if url and notion_url_exists(url):
-        print(f"  ⏭ 重複スキップ: {item.get('title', '')[:30]}")
-        return False
+    if url:
+        exists = notion_url_exists(url)
+        if exists is None:
+            # API 障害時は保存しない（重複登録を防ぐため安全側に倒す）
+            print(f"  ⚠ WARNING: Notion重複チェックAPI失敗のため保存スキップ: {item.get('title', '')[:30]}")
+            return False
+        if exists:
+            print(f"  ⏭ 重複スキップ: {item.get('title', '')[:30]}")
+            return False
 
     # 事業内容タグ
     categories = item.get("categories", [])
@@ -429,9 +444,9 @@ def add_to_notion(item: dict) -> bool:
     if url:
         properties["公式URL"] = {"url": url}
 
-    # 申請期限（検出できた場合のみ）
+    # 申請期限（YYYY-MM-DD 形式のみ受理。「随時」「未定」「令和7年〜」等は除外）
     deadline = item.get("deadline")
-    if deadline and deadline != "null":
+    if isinstance(deadline, str) and re.match(r"^\d{4}-\d{2}-\d{2}$", deadline):
         properties["申請期限"] = {"date": {"start": deadline}}
 
     # 補助金額（検出できた場合のみ）
@@ -629,7 +644,24 @@ def save_files(line_text: str, md_text: str, now: datetime):
 
 
 # ── メイン ────────────────────────────────────────────
+REQUIRED_ENV_KEYS = [
+    "ANTHROPIC_API_KEY",
+    "LINE_CHANNEL_ACCESS_TOKEN",
+    "LINE_USER_ID",
+    "NOTION_API_KEY",
+    "NOTION_HOJOKIN_DB_ID",
+]
+
+
 def main():
+    # 必須環境変数チェック（未設定なら何もせず終了）
+    missing = [k for k in REQUIRED_ENV_KEYS if not os.getenv(k)]
+    if missing:
+        print("⚠ 必須環境変数が未設定のため処理を中断します:")
+        for k in missing:
+            print(f"   - {k}")
+        sys.exit(1)
+
     now = datetime.now(JST)
     print(f"🕐 実行時刻: {now.strftime('%Y-%m-%d %H:%M')} JST\n")
 

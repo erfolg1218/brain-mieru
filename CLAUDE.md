@@ -22,7 +22,7 @@ C:\Users\taisei10\Desktop\brain-mieru\
 ├── .gitignore
 ├── x-briefing\
 │   ├── main.py                ← Xブリーフィングスクリプト（268行）
-│   ├── accounts.csv           ← 監視アカウントリスト
+│   ├── accounts.xlsx          ← 監視アカウントリスト（ドロップダウン付きExcel）
 │   ├── .env                   ← APIキー（gitignore済み・絶対コミットしない）
 │   ├── run.bat
 │   └── output\                ← 取得データ保存先

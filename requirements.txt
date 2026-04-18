@@ -1,0 +1,7 @@
+playwright
+anthropic
+requests
+pandas
+openpyxl
+python-dotenv
+notion-client

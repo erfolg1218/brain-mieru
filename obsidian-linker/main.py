@@ -34,8 +34,8 @@ LOG_FILE = OUTPUT_DIR / "obsidian-update.log"
 EXCLUDE_DIRS = {".obsidian", ".claude", ".smtcmp_json_db"}
 JST = timezone(timedelta(hours=9))
 
-load_dotenv(Path(r"C:\Users\taisei10\Desktop\brain-mieru\x-briefing\.env"))
-load_dotenv(Path(r"C:\Users\taisei10\Desktop\AI-Shokunin\agent-zemi\.env"), override=False)
+env_path = Path(__file__).parent.parent / "x-briefing" / ".env"
+load_dotenv(env_path)
 
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY")
 

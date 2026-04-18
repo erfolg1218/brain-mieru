@@ -128,10 +128,22 @@ def scrape_tweets(account: str, hours: int = 24) -> list[dict]:
                 if not text.strip():
                     continue
 
+                # 投稿URL取得（/status/<id> で終わる href を探す。
+                # /photo/, /analytics, /likes 等のサブパスは弾く）
+                tweet_url = ""
+                for link in article.query_selector_all('a[href*="/status/"]'):
+                    href = link.get_attribute("href") or ""
+                    if re.search(r"/status/\d+$", href):
+                        tweet_url = f"https://x.com{href}" if href.startswith("/") else href
+                        break
+                if not tweet_url:
+                    continue
+
                 tweets.append({
                     "account": account,
                     "time": tweet_time.strftime("%Y-%m-%d %H:%M"),
                     "text": text.strip(),
+                    "url": tweet_url,
                 })
 
         except Exception as e:
@@ -257,24 +269,21 @@ def notion_url_exists(tweet_url: str) -> bool:
     return len(resp.json().get("results", [])) > 0
 
 
-def build_tweet_url(account: str, time_str: str) -> str:
-    """アカウント名からツイートページURLを生成"""
-    handle = account.lstrip("@")
-    return f"https://x.com/{handle}"
-
-
 def add_tweet_to_notion(item: dict, account_map: dict | None, now: datetime) -> bool:
     """1件のツイート分析結果をNotionDBに追加"""
     account = item.get("account", "").lstrip("@")
-    tweet_url = build_tweet_url(account, item.get("time", ""))
+    tweet_url = item.get("url", "")
 
-    # 重複チェック（アカウント+要約で簡易チェック）
+    # URLが無い＝元投稿に戻れない不完全データなので登録しない
+    if not tweet_url:
+        print(f"  ⏭ URL欠落スキップ: @{account}")
+        return False
+
     summary = item.get("summary", "")
     title = summary[:100] if summary else item.get("text", "")[:100]
 
-    # 元URLで重複チェック（同一アカウントの同日データ）
-    check_url = f"https://x.com/{account}/status/{now.strftime('%Y%m%d')}-{title[:20]}"
-    if notion_url_exists(check_url):
+    # 実際の投稿URLで重複チェック
+    if notion_url_exists(tweet_url):
         print(f"  ⏭ 重複スキップ: @{account}")
         return False
 
@@ -297,7 +306,7 @@ def add_tweet_to_notion(item: dict, account_map: dict | None, now: datetime) -> 
             "date": {"start": now.strftime("%Y-%m-%d")},
         },
         "元URL": {
-            "url": check_url,
+            "url": tweet_url,
         },
     }
 
@@ -400,7 +409,24 @@ def save_markdown(text: str, now: datetime):
 
 
 # ── メイン ────────────────────────────────────────────
+REQUIRED_ENV_KEYS = [
+    "ANTHROPIC_API_KEY",
+    "LINE_CHANNEL_ACCESS_TOKEN",
+    "LINE_USER_ID",
+    "NOTION_API_KEY",
+    "NOTION_DATABASE_ID",
+]
+
+
 def main():
+    # 必須環境変数チェック（未設定なら何もせず終了）
+    missing = [k for k in REQUIRED_ENV_KEYS if not os.getenv(k)]
+    if missing:
+        print("⚠ 必須環境変数が未設定のため処理を中断します:")
+        for k in missing:
+            print(f"   - {k}")
+        sys.exit(1)
+
     now = datetime.now(JST)
     print(f"🕐 実行時刻: {now.strftime('%Y-%m-%d %H:%M')} JST\n")
 
@@ -424,6 +450,12 @@ def main():
     # 2. Claude で要約・重要度判定
     print("🤖 Claude で分析中...\n")
     results = analyze_with_claude(tweets)
+
+    # Claude の出力(index 1始まり)を元 tweets と紐付けて url を伝搬
+    for r in results:
+        idx = r.get("index", 0)
+        if isinstance(idx, int) and 1 <= idx <= len(tweets):
+            r["url"] = tweets[idx - 1].get("url", "")
 
     # 3. フォーマット
     briefing = format_briefing(results, now, account_map)
