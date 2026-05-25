@@ -183,7 +183,7 @@ Obsidian Vault\
 
 ## GitHub
 
-- リポジトリ：`erflog1218/keiji-skills`
+- リポジトリ：`erfolg1218/keiji-skills`
 - push済みSkill：`obsidian-auto-store`
 - **注意：.env・output/・__pycache__/ は絶対にpushしない**
 
